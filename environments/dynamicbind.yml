@@ -1,0 +1,93 @@
+# DynamicBind Conda Environment
+# For local development and testing
+#
+# Installation:
+#   conda env create -f environments/dynamicbind.yml
+#   conda activate dynamicbind
+
+name: dynamicbind
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+  - pyg
+  - defaults
+
+dependencies:
+  # Python version
+  - python=3.10
+
+  # ===== Phase 1: Molecular Dynamics =====
+  # OpenMM for MD simulations
+  - openmm>=8.0
+  - pdbfixer
+  - parmed
+
+  # Trajectory analysis
+  - mdanalysis>=2.4
+  - mdtraj
+
+  # Structure handling
+  - biopython>=1.80
+
+  # ===== Phase 2: Pocket Detection =====
+  # Will add: fpocket, sitemap bindings
+
+  # ===== Phase 3: Diffusion Model =====
+  # PyTorch with CUDA support
+  - pytorch>=2.0
+  - pytorch-cuda=12.1
+  - torchvision
+  - torchaudio
+
+  # PyTorch Geometric for GNNs
+  - pyg>=2.4
+
+  # ===== Phase 4: Validation =====
+  # Docking (AutoDock Vina)
+  # Note: Vina installed separately
+
+  # ===== General Scientific Computing =====
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=2.0
+  - scikit-learn>=1.2
+
+  # ===== Visualization =====
+  - matplotlib>=3.7
+  - seaborn
+  - plotly
+
+  # ===== 3D Molecular Visualization =====
+  - py3dmol
+  - nglview
+
+  # ===== Utilities =====
+  - pyyaml
+  - requests
+  - tqdm
+  - h5py
+  - jupyter
+  - jupyterlab
+  - ipywidgets
+
+  # ===== Code Quality =====
+  - pytest
+  - black
+  - isort
+  - flake8
+
+  # ===== Pip-only packages =====
+  - pip
+  - pip:
+    # RDKit for chemistry
+    - rdkit>=2023.3
+
+    # ProDy for protein dynamics
+    - prody>=2.4
+
+    # ESM for protein embeddings (Phase 3)
+    - fair-esm
+
+    # e3nn for SE(3) equivariance (Phase 3)
+    - e3nn>=0.5

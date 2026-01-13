@@ -1,0 +1,130 @@
+# p53 Configuration
+# "Guardian of the Genome" - Cancer Target
+
+target:
+  name: "p53"
+  short_name: "p53"
+  disease: "Cancer"
+  description: |
+    p53 is a tumor suppressor protein known as the "Guardian of the Genome."
+    It regulates cell cycle, DNA repair, and apoptosis. TP53 is mutated in
+    over 50% of human cancers, making it the most frequently mutated gene
+    in cancer. The DNA-binding domain (DBD) contains ~95% of oncogenic
+    mutations and features cryptic binding pockets that open transiently.
+
+  # Therapeutic relevance
+  relevance: |
+    - Mutated in >50% of all human cancers
+    - Most frequently mutated gene in cancer
+    - Cryptic pockets identified (S6-S7 pocket)
+    - Reactivation of mutant p53 = potential pan-cancer therapy
+
+# PDB structures to simulate
+structures:
+  - pdb_id: "2AHI"
+    description: "Wild-type p53 DBD crystal structure"
+    type: "crystal"
+    resolution: "1.85A"
+    chain: "A"
+    rationale: "High-resolution WT starting point for mutation studies"
+    priority: 1
+    notes: |
+      Can introduce mutations in silico:
+      - R175H (most common structural mutant)
+      - R248Q (DNA contact mutant)
+      - Y220C (creates druggable pocket)
+      - R249S (common in hepatocellular carcinoma)
+
+  - pdb_id: "2FEJ"
+    description: "NMR ensemble of p53 DBD"
+    type: "ensemble"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Captures natural backbone diversity and pocket breathing"
+    priority: 1
+    notes: |
+      Use 5-10 NMR models to sample conformational diversity
+      S6-S7 pocket partially formed in some conformers
+
+# Mutations to simulate (in silico mutagenesis from 2AHI)
+mutations:
+  - name: "Y220C"
+    description: "Creates expanded druggable crevice"
+    residue: 220
+    wild_type: "TYR"
+    mutant: "CYS"
+    priority: "high"
+    notes: "PhiKan compounds target this mutant"
+
+  - name: "R175H"
+    description: "Most common structural mutant"
+    residue: 175
+    wild_type: "ARG"
+    mutant: "HIS"
+    priority: "high"
+    notes: "Destabilizes zinc-binding region"
+
+  - name: "R248Q"
+    description: "DNA contact mutant"
+    residue: 248
+    wild_type: "ARG"
+    mutant: "GLN"
+    priority: "medium"
+
+# GaMD simulation parameters
+gamd:
+  # Temperature and pressure
+  temperature: 310.0  # K
+  pressure: 1.0  # bar
+  timestep: 2.0  # fs
+
+  # GaMD boost parameters
+  sigma0_dihedral: 6.0  # kcal/mol
+  sigma0_total: 6.0  # kcal/mol
+
+  # Simulation lengths
+  equilibration_steps: 500000  # 1 ns
+  gamd_equilibration_steps: 5000000  # 10 ns
+  production_steps: 750000000  # 1.5 microseconds
+
+  # Output frequencies
+  save_frequency: 5000  # 10 ps
+  log_frequency: 1000  # 2 ps
+  checkpoint_frequency: 50000  # 100 ps
+
+  # System setup
+  padding: 1.2  # nm
+  ionic_strength: 0.15  # M NaCl
+
+# Analysis parameters
+analysis:
+  rmsd_selection: "backbone"
+  rmsf_selection: "name CA"
+  clustering:
+    n_clusters: 25
+    method: "kmeans"
+
+  # Pocket detection - focused on known cryptic sites
+  pocket_detection:
+    min_volume: 100
+    max_volume: 1500
+    min_depth: 4.0
+
+  # Key regions to monitor
+  key_regions:
+    - name: "S6-S7 pocket"
+      residues: [220, 221, 222, 223, 224, 225]
+      description: "Cryptic pocket region, expanded in Y220C"
+    - name: "Zinc binding"
+      residues: [176, 179, 238, 242]
+      description: "Zinc coordination, destabilized in R175H"
+    - name: "DNA binding"
+      residues: [248, 273, 280]
+      description: "Direct DNA contacts"
+
+# Expected simulation time on Polaris
+resources:
+  estimated_node_hours: 350
+  nodes: 2
+  gpus_per_node: 4
+  priority: "high"

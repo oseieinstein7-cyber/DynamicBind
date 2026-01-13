@@ -1,0 +1,68 @@
+#!/bin/bash
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:eagle
+#PBS -q debug
+#PBS -A <YOUR_PROJECT_ALLOCATION>
+#PBS -N dynamicbind_test
+#PBS -j oe
+#PBS -o logs/gamd_test_${PBS_JOBID}.log
+
+#==============================================================================
+# DynamicBind GaMD TEST Simulation - Short run for validation
+#
+# Usage:
+#   qsub -v TARGET=cmyc,PDB_ID=6G6K submit_gamd_test.pbs
+#==============================================================================
+
+set -e
+
+# Load modules
+module use /soft/modulefiles
+module load conda/2024-04-29
+module load cudatoolkit-standalone/12.2.2
+
+# Activate environment
+conda activate /eagle/projects/dynamicbind/envs/dynamicbind_env
+
+# Set up paths
+PROJECT_DIR="/eagle/projects/dynamicbind/DynamicBind"
+WORK_DIR="${PROJECT_DIR}/data/trajectories/${TARGET}/${PDB_ID}_test_${PBS_JOBID}"
+LOG_DIR="${PROJECT_DIR}/logs"
+
+mkdir -p ${WORK_DIR}
+mkdir -p ${LOG_DIR}
+
+cd ${PROJECT_DIR}
+
+echo "=================================================="
+echo "DynamicBind GaMD TEST Simulation"
+echo "=================================================="
+echo "Target: ${TARGET}"
+echo "PDB ID: ${PDB_ID}"
+echo "Job ID: ${PBS_JOBID}"
+echo "Start Time: $(date)"
+echo "=================================================="
+
+nvidia-smi
+
+INPUT_PDB="${PROJECT_DIR}/data/structures/${TARGET}/processed/${PDB_ID}_chainA_fixed.pdb"
+
+if [ ! -f "${INPUT_PDB}" ]; then
+    echo "ERROR: Input structure not found: ${INPUT_PDB}"
+    exit 1
+fi
+
+# Run SHORT test simulation
+python ${PROJECT_DIR}/src/phase1_md/simulation/gamd_simulation.py \
+    ${INPUT_PDB} \
+    --output ${WORK_DIR} \
+    --config ${PROJECT_DIR}/configs/targets/${TARGET}.yaml \
+    --test
+
+echo "=================================================="
+echo "Test Complete!"
+echo "End Time: $(date)"
+echo "Output: ${WORK_DIR}"
+echo "=================================================="

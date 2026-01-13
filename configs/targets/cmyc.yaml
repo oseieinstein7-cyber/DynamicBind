@@ -1,0 +1,99 @@
+# c-Myc Configuration
+# Primary Cancer Target (~70% of all cancers)
+
+target:
+  name: "c-Myc"
+  short_name: "cmyc"
+  disease: "Cancer"
+  description: |
+    c-Myc is a transcription factor that regulates cell proliferation,
+    growth, and apoptosis. It is deregulated in approximately 70% of
+    human cancers, making it one of the most important oncogenic targets.
+    The c-Myc protein is largely intrinsically disordered and has been
+    considered "undruggable" due to lack of stable binding pockets.
+
+  # Therapeutic relevance
+  relevance: |
+    - Deregulated in ~70% of all human cancers
+    - Master regulator of cell proliferation
+    - Previously considered "undruggable" IDP
+    - Drugging c-Myc could revolutionize cancer therapy
+
+# PDB structures to simulate
+structures:
+  - pdb_id: "6G6K"
+    description: "Apo c-Myc:Max complex (crystal)"
+    type: "complex"
+    resolution: "2.5A"
+    chain: "A"  # c-Myc chain
+    rationale: "Ready-to-bind helical conformation in DNA-binding state"
+    priority: 1
+    notes: "Extract c-Myc monomer from Max heterodimer"
+
+  - pdb_id: "1NKP"
+    description: "DNA-bound c-Myc:Max complex"
+    type: "complex_dna"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Fully folded alpha-helical state with DNA"
+    priority: 2
+
+  - pdb_id: "2A93"
+    description: "NMR ensemble of leucine zipper region"
+    type: "ensemble"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Captures conformational flexibility of bHLH-LZ domain"
+    priority: 1
+    notes: "Use multiple NMR models as starting conformations"
+
+# GaMD simulation parameters
+gamd:
+  # Temperature and pressure
+  temperature: 310.0  # K
+  pressure: 1.0  # bar
+  timestep: 2.0  # fs
+
+  # GaMD boost parameters
+  sigma0_dihedral: 6.0  # kcal/mol
+  sigma0_total: 6.0  # kcal/mol
+
+  # Simulation lengths - EXTENDED for this high-priority target
+  equilibration_steps: 500000  # 1 ns
+  gamd_equilibration_steps: 5000000  # 10 ns
+  production_steps: 1000000000  # 2 microseconds (priority target)
+
+  # Output frequencies
+  save_frequency: 5000  # 10 ps
+  log_frequency: 1000  # 2 ps
+  checkpoint_frequency: 50000  # 100 ps
+
+  # System setup
+  padding: 1.5  # nm (larger for elongated structure)
+  ionic_strength: 0.15  # M NaCl
+
+# Analysis parameters
+analysis:
+  rmsd_selection: "backbone"
+  rmsf_selection: "name CA"
+  clustering:
+    n_clusters: 30  # More clusters for diverse conformations
+    method: "kmeans"
+
+  # Pocket detection - focused on known interaction sites
+  pocket_detection:
+    min_volume: 80  # Smaller threshold for shallow pockets
+    max_volume: 1500
+    min_depth: 3.5
+
+  # Key residues to monitor
+  key_residues:
+    - range: [353, 439]  # bHLH-LZ domain
+    - description: "DNA-binding and dimerization region"
+
+# Expected simulation time on Polaris
+resources:
+  estimated_node_hours: 400
+  nodes: 2
+  gpus_per_node: 4
+  priority: "critical"  # Highest priority target
