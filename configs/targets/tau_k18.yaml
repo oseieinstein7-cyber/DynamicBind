@@ -1,0 +1,112 @@
+# Tau K18 Configuration
+# Alzheimer's Disease Target
+
+target:
+  name: "Tau K18"
+  short_name: "tau_k18"
+  disease: "Alzheimer's Disease"
+  description: |
+    Tau K18 is the microtubule-binding repeat region of Tau protein,
+    containing four repeat domains (R1-R4) that are critical for both
+    normal microtubule binding and pathological aggregation. In
+    Alzheimer's disease, Tau hyperphosphorylation leads to neurofibrillary
+    tangles. K18 construct (residues 244-372) is the minimal aggregation-
+    competent fragment and is intrinsically disordered.
+
+  # Therapeutic relevance
+  relevance: |
+    - Key component of neurofibrillary tangles in AD
+    - Aggregation inhibitors could slow AD progression
+    - IDP nature makes it challenging but important target
+    - Multiple conformational states to explore
+
+# PDB structures to simulate
+structures:
+  - pdb_id: "2MZ7"
+    description: "NMR structure of Tau repeat region"
+    type: "nmr"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Experimental structure of K18 fragment"
+    priority: 1
+
+# PED ensembles (IDP conformational ensembles)
+ped_ensembles:
+  - ped_id: "PED00192"
+    description: "Tau K18 IDP ensemble"
+    n_conformers: 100
+    rationale: "Pre-computed IDP conformational diversity"
+    priority: 1
+
+  - ped_id: "PED00443"
+    description: "Additional Tau K18 ensemble"
+    n_conformers: 100
+    rationale: "Complementary IDP conformations"
+    priority: 2
+
+# GaMD simulation parameters
+gamd:
+  # Temperature and pressure
+  temperature: 310.0  # K
+  pressure: 1.0  # bar
+  timestep: 2.0  # fs
+
+  # GaMD boost parameters - HIGHER for this highly disordered protein
+  sigma0_dihedral: 7.0  # kcal/mol (increased for IDP)
+  sigma0_total: 7.0  # kcal/mol
+
+  # Simulation lengths
+  equilibration_steps: 500000  # 1 ns
+  gamd_equilibration_steps: 5000000  # 10 ns
+  production_steps: 500000000  # 1 microsecond
+
+  # Output frequencies
+  save_frequency: 5000  # 10 ps
+  log_frequency: 1000  # 2 ps
+  checkpoint_frequency: 50000  # 100 ps
+
+  # System setup
+  padding: 1.5  # nm (larger for extended IDP)
+  ionic_strength: 0.15  # M NaCl
+
+# Analysis parameters
+analysis:
+  rmsd_selection: "backbone"
+  rmsf_selection: "name CA"
+  clustering:
+    n_clusters: 40  # Many clusters for highly disordered protein
+    method: "kmeans"
+
+  # Pocket detection - smaller thresholds for transient pockets
+  pocket_detection:
+    min_volume: 60
+    max_volume: 1200
+    min_depth: 3.0
+
+  # Key regions (repeat domains)
+  key_regions:
+    - name: "R1"
+      residues: [244, 274]
+      description: "First repeat domain"
+    - name: "R2"
+      residues: [275, 305]
+      description: "Second repeat domain"
+    - name: "R3"
+      residues: [306, 336]
+      description: "Third repeat domain (PHF core)"
+    - name: "R4"
+      residues: [337, 368]
+      description: "Fourth repeat domain"
+    - name: "VQIINK"
+      residues: [275, 280]
+      description: "Hexapeptide motif, aggregation hotspot"
+    - name: "VQIVYK"
+      residues: [306, 311]
+      description: "Hexapeptide motif, aggregation hotspot"
+
+# Expected simulation time on Polaris
+resources:
+  estimated_node_hours: 200
+  nodes: 1
+  gpus_per_node: 4
+  priority: "medium"

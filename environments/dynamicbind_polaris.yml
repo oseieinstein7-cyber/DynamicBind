@@ -1,0 +1,71 @@
+# DynamicBind Conda Environment for ALCF Polaris
+# Optimized for A100 GPUs with CUDA 12.x
+#
+# Installation on Polaris:
+#   module load conda/2024-04-29
+#   conda env create -f environments/dynamicbind_polaris.yml -p /eagle/projects/dynamicbind/envs/dynamicbind_env
+
+name: dynamicbind_polaris
+channels:
+  - conda-forge
+  - pytorch
+  - nvidia
+  - pyg
+  - defaults
+
+dependencies:
+  # Python version (match Polaris system Python)
+  - python=3.10
+
+  # ===== Phase 1: Molecular Dynamics =====
+  # OpenMM with CUDA support
+  - openmm>=8.0
+  - cudatoolkit=12.2
+  - pdbfixer
+  - parmed
+
+  # Trajectory analysis
+  - mdanalysis>=2.4
+  - mdtraj
+
+  # Structure handling
+  - biopython>=1.80
+
+  # ===== Phase 3: Deep Learning =====
+  # PyTorch with CUDA 12.1 support
+  - pytorch>=2.0
+  - pytorch-cuda=12.1
+  - torchvision
+  - torchaudio
+
+  # PyTorch Geometric
+  - pyg>=2.4
+
+  # Transformer libraries
+  - transformers>=4.30
+
+  # ===== Scientific Computing =====
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=2.0
+  - scikit-learn>=1.2
+
+  # ===== Visualization =====
+  - matplotlib>=3.7
+  - seaborn
+
+  # ===== Utilities =====
+  - pyyaml
+  - requests
+  - tqdm
+  - h5py
+  - mpi4py  # For multi-node jobs
+
+  # ===== Pip packages =====
+  - pip
+  - pip:
+    - rdkit>=2023.3
+    - prody>=2.4
+    - fair-esm
+    - e3nn>=0.5
+    - wandb  # For experiment tracking

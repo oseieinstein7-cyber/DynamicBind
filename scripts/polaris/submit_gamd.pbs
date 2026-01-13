@@ -1,0 +1,100 @@
+#!/bin/bash
+#PBS -l select=1:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=24:00:00
+#PBS -l filesystems=home:eagle
+#PBS -q prod
+#PBS -A <YOUR_PROJECT_ALLOCATION>
+#PBS -N dynamicbind_gamd
+#PBS -j oe
+#PBS -o logs/gamd_${PBS_JOBID}.log
+
+#==============================================================================
+# DynamicBind GaMD Simulation - ALCF Polaris Submission Script
+#
+# This script runs Gaussian Accelerated MD simulations on Polaris.
+# Polaris Specs: 4x NVIDIA A100 GPUs per node
+#
+# Usage:
+#   qsub -v TARGET=cmyc,PDB_ID=6G6K submit_gamd.pbs
+#
+# Environment variables:
+#   TARGET   - Target protein (cmyc, p53, abeta42, alpha_synuclein, tau_k18)
+#   PDB_ID   - PDB ID to simulate
+#   RESTART  - (optional) Path to checkpoint file for restart
+#==============================================================================
+
+set -e
+
+# Load modules
+module use /soft/modulefiles
+module load conda/2024-04-29
+module load cudatoolkit-standalone/12.2.2
+
+# Activate environment
+conda activate /eagle/projects/dynamicbind/envs/dynamicbind_env
+
+# Set up paths
+PROJECT_DIR="/eagle/projects/dynamicbind/DynamicBind"
+WORK_DIR="${PROJECT_DIR}/data/trajectories/${TARGET}/${PDB_ID}_${PBS_JOBID}"
+LOG_DIR="${PROJECT_DIR}/logs"
+
+# Create directories
+mkdir -p ${WORK_DIR}
+mkdir -p ${LOG_DIR}
+
+# Navigate to project
+cd ${PROJECT_DIR}
+
+echo "=================================================="
+echo "DynamicBind GaMD Simulation"
+echo "=================================================="
+echo "Target: ${TARGET}"
+echo "PDB ID: ${PDB_ID}"
+echo "Job ID: ${PBS_JOBID}"
+echo "Work Directory: ${WORK_DIR}"
+echo "Start Time: $(date)"
+echo "=================================================="
+
+# Check GPU availability
+nvidia-smi
+
+# Get input structure
+INPUT_PDB="${PROJECT_DIR}/data/structures/${TARGET}/processed/${PDB_ID}_chainA_fixed.pdb"
+
+if [ ! -f "${INPUT_PDB}" ]; then
+    echo "ERROR: Input structure not found: ${INPUT_PDB}"
+    echo "Run structure preparation first!"
+    exit 1
+fi
+
+echo "Input structure: ${INPUT_PDB}"
+
+# Set up restart if provided
+RESTART_FLAG=""
+if [ -n "${RESTART}" ] && [ -f "${RESTART}" ]; then
+    echo "Restarting from checkpoint: ${RESTART}"
+    RESTART_FLAG="--restart ${RESTART}"
+fi
+
+# Run simulation
+python ${PROJECT_DIR}/src/phase1_md/simulation/gamd_simulation.py \
+    ${INPUT_PDB} \
+    --output ${WORK_DIR} \
+    --config ${PROJECT_DIR}/configs/targets/${TARGET}.yaml \
+    ${RESTART_FLAG}
+
+# Copy final results to permanent storage
+echo "=================================================="
+echo "Simulation Complete!"
+echo "End Time: $(date)"
+echo "Output: ${WORK_DIR}"
+echo "=================================================="
+
+# Create analysis summary
+python ${PROJECT_DIR}/src/phase1_md/analysis/trajectory_analysis.py \
+    ${WORK_DIR}/equilibrated.pdb \
+    ${WORK_DIR}/production_traj.dcd \
+    --output ${WORK_DIR}/analysis
+
+echo "Analysis complete. Results in ${WORK_DIR}/analysis"

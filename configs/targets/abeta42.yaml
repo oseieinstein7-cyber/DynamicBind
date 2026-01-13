@@ -1,0 +1,90 @@
+# Amyloid-Beta 42 Configuration
+# Target for Alzheimer's Disease
+
+target:
+  name: "Amyloid-Beta 42"
+  short_name: "abeta42"
+  disease: "Alzheimer's Disease"
+  description: |
+    Amyloid-beta peptide (Aβ42) is a 42 amino acid peptide that aggregates
+    to form amyloid plaques in Alzheimer's disease. It is intrinsically
+    disordered in its monomeric form and undergoes conformational changes
+    during aggregation.
+
+  # Therapeutic relevance
+  relevance: |
+    - Primary component of amyloid plaques in AD brain
+    - Target of multiple failed clinical trials (aggregation inhibitors)
+    - Cryptic pocket targeting may enable novel therapeutic approach
+
+# PDB structures to simulate
+structures:
+  - pdb_id: "2NAO"
+    description: "NMR fibril structure (S-bend, double-horseshoe)"
+    type: "fibril"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Disease-relevant fibril architecture with backbone frustrations"
+    priority: 1
+
+  - pdb_id: "1Z0Q"
+    description: "Solution NMR, aqueous environment"
+    type: "monomer"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Collapsed but soluble starting point for aggregation"
+    priority: 2
+
+  - pdb_id: "1IYT"
+    description: "Solid-state NMR fibril (extract monomer)"
+    type: "fibril_monomer"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Tests if simulation can sample fibril-competent states"
+    priority: 3
+
+# GaMD simulation parameters
+gamd:
+  # Temperature and pressure
+  temperature: 310.0  # K (physiological)
+  pressure: 1.0  # bar
+  timestep: 2.0  # fs
+
+  # GaMD boost parameters
+  sigma0_dihedral: 6.0  # kcal/mol
+  sigma0_total: 6.0  # kcal/mol
+
+  # Simulation lengths (steps)
+  equilibration_steps: 500000  # 1 ns
+  gamd_equilibration_steps: 5000000  # 10 ns
+  production_steps: 500000000  # 1 microsecond
+
+  # Output frequencies
+  save_frequency: 5000  # 10 ps
+  log_frequency: 1000  # 2 ps
+  checkpoint_frequency: 50000  # 100 ps
+
+  # System setup
+  padding: 1.2  # nm
+  ionic_strength: 0.15  # M NaCl
+
+# Analysis parameters
+analysis:
+  rmsd_selection: "backbone"
+  rmsf_selection: "name CA"
+  clustering:
+    n_clusters: 20
+    method: "kmeans"
+
+  # Pocket detection thresholds
+  pocket_detection:
+    min_volume: 100  # Angstrom^3
+    max_volume: 2000
+    min_depth: 4.0  # Angstrom
+
+# Expected simulation time on Polaris
+resources:
+  estimated_node_hours: 200
+  nodes: 1
+  gpus_per_node: 4
+  priority: "high"

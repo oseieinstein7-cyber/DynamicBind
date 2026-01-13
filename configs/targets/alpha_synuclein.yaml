@@ -1,0 +1,107 @@
+# Alpha-Synuclein Configuration
+# Primary Target for Parkinson's Disease
+
+target:
+  name: "Alpha-Synuclein"
+  short_name: "alpha_synuclein"
+  disease: "Parkinson's Disease"
+  description: |
+    Alpha-synuclein is a 140 amino acid protein that forms Lewy bodies
+    in Parkinson's disease and dementia with Lewy bodies (DLB). It is
+    natively unfolded (IDP) but can adopt helical structure upon membrane
+    binding or aggregate into toxic oligomers and fibrils. The protein
+    transitions between multiple conformational states, making it an
+    ideal target for cryptic pocket discovery.
+
+  # Therapeutic relevance
+  relevance: |
+    - Main component of Lewy bodies in PD
+    - Aggregation linked to neurodegeneration
+    - Multiple conformational states = multiple druggable opportunities
+    - Both fibril-binders and aggregation inhibitors needed
+
+# PDB structures to simulate
+structures:
+  - pdb_id: "8A9L"
+    description: "Cryo-EM fibrils from PD/DLB brain tissue"
+    type: "fibril"
+    resolution: "cryo-EM"
+    chain: "A"
+    rationale: "Actual Lewy body pathology fold from human brain"
+    priority: 1
+    notes: "Disease-realistic target for PET tracer development"
+
+  - pdb_id: "8FPT"
+    description: "Solid-state NMR LBD tissue fibrils"
+    type: "fibril"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Complementary polymorph to 8A9L from human tissue"
+    priority: 2
+
+  - pdb_id: "2KKW"
+    description: "Micelle-bound partially folded state"
+    type: "membrane_bound"
+    resolution: "NMR"
+    chain: "A"
+    rationale: "Pre-fibrillar state with membrane interaction - ideal for cryptic pockets"
+    priority: 1
+    notes: "High structural heterogeneity, great for pocket discovery"
+
+# GaMD simulation parameters
+gamd:
+  # Temperature and pressure
+  temperature: 310.0  # K
+  pressure: 1.0  # bar
+  timestep: 2.0  # fs
+
+  # GaMD boost parameters
+  sigma0_dihedral: 6.0  # kcal/mol
+  sigma0_total: 6.0  # kcal/mol
+
+  # Simulation lengths
+  equilibration_steps: 500000  # 1 ns
+  gamd_equilibration_steps: 5000000  # 10 ns
+  production_steps: 500000000  # 1 microsecond
+
+  # Output frequencies
+  save_frequency: 5000  # 10 ps
+  log_frequency: 1000  # 2 ps
+  checkpoint_frequency: 50000  # 100 ps
+
+  # System setup
+  padding: 1.4  # nm (larger for extended IDP)
+  ionic_strength: 0.15  # M NaCl
+
+# Analysis parameters
+analysis:
+  rmsd_selection: "backbone"
+  rmsf_selection: "name CA"
+  clustering:
+    n_clusters: 30  # Many clusters for IDP conformational diversity
+    method: "kmeans"
+
+  # Pocket detection
+  pocket_detection:
+    min_volume: 80  # Smaller for transient pockets
+    max_volume: 1500
+    min_depth: 3.5
+
+  # Key regions
+  key_regions:
+    - name: "N-terminus"
+      residues: [1, 60]
+      description: "Membrane-binding, becomes helical"
+    - name: "NAC region"
+      residues: [61, 95]
+      description: "Non-amyloid component, aggregation-prone core"
+    - name: "C-terminus"
+      residues: [96, 140]
+      description: "Acidic tail, remains disordered"
+
+# Expected simulation time on Polaris
+resources:
+  estimated_node_hours: 250
+  nodes: 1
+  gpus_per_node: 4
+  priority: "high"
