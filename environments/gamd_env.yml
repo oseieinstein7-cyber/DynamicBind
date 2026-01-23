@@ -1,0 +1,71 @@
+# GaMD Environment for ALCF Polaris
+# Specialized environment for Gaussian accelerated Molecular Dynamics
+#
+# Installation on Polaris:
+#   # Option 1: Using miniconda
+#   source ~/miniconda3/etc/profile.d/conda.sh
+#   conda env create -f environments/gamd_env.yml
+#   conda activate gamd_env
+#
+#   # Option 2: Using module
+#   module load conda/2024-04-29
+#   conda env create -f environments/gamd_env.yml
+#
+# After installation, install gamd-openmm:
+#   pip install gamd-openmm
+#
+# Verify installation:
+#   python -c "from gamd import gamdSimulation; print('GaMD OK')"
+#   python -c "import openmm; print('OpenMM:', openmm.__version__)"
+#   python -c "from pdbfixer import PDBFixer; print('PDBFixer OK')"
+
+name: gamd_env
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python version
+  - python=3.10
+
+  # ===== OpenMM and MD Tools =====
+  - openmm>=8.0
+  - pdbfixer
+  - parmed
+  - ambertools>=23
+
+  # ===== Structure Handling =====
+  - biopython>=1.80
+
+  # ===== Scientific Computing =====
+  # IMPORTANT: Use numpy 1.x to avoid compatibility issues
+  - numpy=1.26.4
+  - scipy>=1.10
+  - pandas>=2.0
+  - scikit-learn>=1.2
+
+  # ===== Trajectory Analysis =====
+  - mdanalysis>=2.4
+  - mdtraj
+
+  # ===== Utilities =====
+  - requests
+  - pyyaml
+  - tqdm
+  - h5py
+
+  # ===== Visualization =====
+  - matplotlib>=3.7
+
+  # ===== Pip packages =====
+  - pip
+  - pip:
+    # GaMD implementation for OpenMM
+    - gamd-openmm
+    # Structure tools
+    - prody>=2.4
+
+# Environment variables to set (add to ~/.bashrc or activate script):
+# export OPENBLAS_NUM_THREADS=4
+# export OMP_NUM_THREADS=4
+# export MKL_NUM_THREADS=4
