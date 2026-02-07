@@ -1,0 +1,44 @@
+# Windows Environment for Polaris Connection
+# This environment allows connecting to ALCF Polaris from a Windows machine
+#
+# Installation:
+#   1. Install Anaconda or Miniconda for Windows
+#   2. Open Anaconda Prompt (not PowerShell)
+#   3. conda env create -f windows_polaris_client.yml
+#   4. conda activate polaris_client
+#
+# Usage:
+#   python connect_polaris.py
+
+name: polaris_client
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python version
+  - python=3.10
+
+  # ===== SSH/SCP Connection =====
+  - paramiko>=3.0
+  - scp>=0.14
+
+  # ===== Scientific Computing =====
+  # For local data analysis of results from Polaris
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=2.0
+  - matplotlib>=3.7
+
+  # ===== MD Analysis =====
+  # For analyzing trajectory data downloaded from Polaris
+  - mdanalysis>=2.4
+
+  # ===== Utilities =====
+  - tqdm
+  - pyyaml
+  - requests
+
+  # ===== Jupyter (optional) =====
+  - jupyter
+  - ipykernel
